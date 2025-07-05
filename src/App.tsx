@@ -1,27 +1,15 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+// src/App.tsx
+import React from 'react';
+import './index.css'; // assuming Tailwind is set up here
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <div className="bg-dark min-h-screen text-accent flex flex-col items-center justify-center p-6">
+      <img src="/Logo Car.jpg" alt="CarsRus Logo" className="h-32 mb-4" />
+      <h1 className="text-4xl font-bold text-primary">CarsRus</h1>
+      <p className="mt-2 text-lg">Expert in Cars, Vans & Trucks</p>
+    </div>
+  );
+}
 
 export default App;
