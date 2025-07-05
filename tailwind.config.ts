@@ -6,9 +6,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "#b91c1c", // red
-        accent: "#ffffff",  // white
-        dark: "#1f1f1f",    // optional dark background
+        primary: "#b91c1c", // Red
+        accent: "#ffffff",  // White
+        dark: "#1f1f1f",    // Optional background
       },
     },
   },
