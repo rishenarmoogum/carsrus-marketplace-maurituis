@@ -121,3 +121,7 @@
 .float-animation {
   animation: float 6s ease-in-out infinite;
 }
+.my-box {
+  @apply border;
+  border-color: #b91c1c; /* red */
+}
