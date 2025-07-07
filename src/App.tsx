@@ -5,7 +5,7 @@ import Index from './pages/Index';
 import BuyCar from './pages/BuyCar';
 import SellCar from './pages/SellCar';
 import Contact from './pages/Contact';
-import LoginPage from './pages/LoginPage';
+import LoginPage from './pages/Login';
 
 function App() {
   return (
