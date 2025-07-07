@@ -1,15 +1,19 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Card } from '../components/ui/card';
-import { Upload, X, AlertCircle } from 'lucide-react';
+import { Upload, X, AlertCircle, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const SellCar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [images, setImages] = useState<File[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     make: '',
     model: '',
@@ -41,34 +45,79 @@ const SellCar = () => {
       }
       
       setImages(prev => [...prev, ...selectedFiles]);
+      
+      // Create URLs for preview
+      selectedFiles.forEach(file => {
+        const url = URL.createObjectURL(file);
+        setImageUrls(prev => [...prev, url]);
+      });
     }
   };
 
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
+    setImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (images.length === 0) {
       alert('Please upload at least one image');
       return;
     }
     
-    // Here you would typically send the data to your backend
-    console.log('Form data:', form);
-    console.log('Images:', images);
-    alert('Car listing submitted successfully!');
+    setIsSubmitting(true);
+    
+    try {
+      // Create a new car object
+      const newCar = {
+        id: Date.now().toString(),
+        make: form.make,
+        model: form.model,
+        year: parseInt(form.year),
+        price: parseInt(form.price),
+        mileage: form.mileage,
+        color: form.color,
+        fuel: form.fuel,
+        transmission: form.transmission,
+        seats: parseInt(form.seats) || 5,
+        description: form.description,
+        images: imageUrls,
+        dateAdded: new Date().toISOString()
+      };
+      
+      // Get existing cars from localStorage
+      const existingCars = JSON.parse(localStorage.getItem('userCars') || '[]');
+      
+      // Add new car to the array
+      const updatedCars = [...existingCars, newCar];
+      
+      // Save back to localStorage
+      localStorage.setItem('userCars', JSON.stringify(updatedCars));
+      
+      setSubmitSuccess(true);
+      
+      // Redirect to home page after 2 seconds
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error submitting car:', error);
+      alert('Error submitting car listing. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-white flex items-center justify-center p-4">
-        <Card className="max-w-md p-8 text-center">
+        <Card className="max-w-md p-8 text-center bg-white border-red-200">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Login Required</h2>
           <p className="text-gray-600 mb-6">
@@ -85,10 +134,24 @@ const SellCar = () => {
     );
   }
 
+  if (submitSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-white flex items-center justify-center p-4">
+        <Card className="max-w-md p-8 text-center bg-white border-red-200">
+          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Success!</h2>
+          <p className="text-gray-600 mb-6">
+            Your car has been listed successfully! Redirecting to home page...
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-white pt-24 pb-12">
       <div className="container mx-auto px-4 max-w-4xl">
-        <Card className="p-8 shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+        <Card className="p-8 shadow-2xl border-red-200 bg-white/90 backdrop-blur-sm">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-red-600 mb-2">Sell Your Car</h1>
             <p className="text-gray-600">List your vehicle on Mauritius' most trusted marketplace</p>
@@ -115,14 +178,14 @@ const SellCar = () => {
               </div>
 
               {/* Image Preview */}
-              {images.length > 0 && (
+              {imageUrls.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {images.map((file, idx) => (
+                  {imageUrls.map((url, idx) => (
                     <div key={idx} className="relative group">
                       <img
-                        src={URL.createObjectURL(file)}
+                        src={url}
                         alt={`Car image ${idx + 1}`}
-                        className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                        className="w-full h-32 object-cover rounded-lg border border-red-200"
                       />
                       <button
                         type="button"
@@ -276,9 +339,10 @@ const SellCar = () => {
 
             <Button
               type="submit"
+              disabled={isSubmitting}
               className="w-full bg-red-600 hover:bg-red-700 text-white py-3 text-lg font-semibold"
             >
-              List My Car
+              {isSubmitting ? 'Listing Your Car...' : 'List My Car'}
             </Button>
           </form>
         </Card>

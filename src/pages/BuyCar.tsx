@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, Grid, List, Fuel, Settings, Users, MapPin } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const BuyCar = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [allCars, setAllCars] = useState([]);
   const [filters, setFilters] = useState({
     make: '',
     model: '',
@@ -16,8 +17,8 @@ const BuyCar = () => {
     year: ''
   });
 
-  // Enhanced car data with more realistic pricing for Mauritius
-  const carsData = [
+  // Static car data
+  const staticCarsData = [
     {
       id: '1',
       brand: 'Toyota',
@@ -76,7 +77,33 @@ const BuyCar = () => {
     }
   ];
 
-  const filteredCars = carsData.filter(car => {
+  useEffect(() => {
+    // Load user-submitted cars from localStorage
+    const savedCars = localStorage.getItem('userCars');
+    const userCars = savedCars ? JSON.parse(savedCars) : [];
+    
+    // Transform user cars to match the expected format
+    const transformedUserCars = userCars.map(car => ({
+      id: car.id,
+      brand: car.make,
+      model: car.model,
+      price: parseInt(car.price),
+      year: parseInt(car.year),
+      transmission: car.transmission || 'Automatic',
+      fuel: car.fuel || 'Petrol',
+      mileage: car.mileage ? `${car.mileage} km` : 'N/A',
+      seats: car.seats || 5,
+      location: 'Mauritius',
+      images: car.images || ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
+      features: ['User Listed', 'Contact Seller']
+    }));
+    
+    // Combine static cars with user-submitted cars
+    const combinedCars = [...staticCarsData, ...transformedUserCars];
+    setAllCars(combinedCars);
+  }, []);
+
+  const filteredCars = allCars.filter(car => {
     return (
       (filters.make === '' || car.brand === filters.make) &&
       (filters.model === '' || car.model === filters.model) &&
@@ -88,18 +115,18 @@ const BuyCar = () => {
     );
   });
 
-  const brands = [...new Set(carsData.map(car => car.brand))];
-  const models = [...new Set(carsData.map(car => car.model))];
+  const brands = [...new Set(allCars.map(car => car.brand))];
+  const models = [...new Set(allCars.map(car => car.model))];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white">
       <Header />
       
       <div className="container mx-auto px-4 pt-24 pb-16">
         {/* Page Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">
-            Browse <span className="gradient-text">Premium Cars</span>
+          <h1 className="text-4xl font-bold mb-4 text-gray-900">
+            Browse <span className="text-red-600">Premium Cars</span>
           </h1>
           <p className="text-xl text-gray-600">
             Find your perfect vehicle from our curated collection
@@ -107,12 +134,12 @@ const BuyCar = () => {
         </div>
 
         {/* Filters Section */}
-        <div className="glass-effect rounded-3xl p-6 mb-8">
+        <div className="bg-white/80 backdrop-blur-md border border-red-100 rounded-3xl p-6 mb-8 shadow-lg">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
             <select
               value={filters.make}
               onChange={(e) => setFilters({...filters, make: e.target.value})}
-              className="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="p-3 border border-red-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
               <option value="">All Brands</option>
               {brands.map(brand => (
@@ -123,7 +150,7 @@ const BuyCar = () => {
             <select
               value={filters.model}
               onChange={(e) => setFilters({...filters, model: e.target.value})}
-              className="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="p-3 border border-red-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
               <option value="">All Models</option>
               {models.map(model => (
@@ -134,7 +161,7 @@ const BuyCar = () => {
             <select
               value={filters.transmission}
               onChange={(e) => setFilters({...filters, transmission: e.target.value})}
-              className="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="p-3 border border-red-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
               <option value="">Transmission</option>
               <option value="Automatic">Automatic</option>
@@ -144,7 +171,7 @@ const BuyCar = () => {
             <select
               value={filters.fuel}
               onChange={(e) => setFilters({...filters, fuel: e.target.value})}
-              className="p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="p-3 border border-red-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
               <option value="">Fuel Type</option>
               <option value="Petrol">Petrol</option>
@@ -162,20 +189,20 @@ const BuyCar = () => {
                 step={50000}
                 value={filters.maxPrice}
                 onChange={(e) => setFilters({...filters, maxPrice: Number(e.target.value)})}
-                className="w-full"
+                className="w-full accent-red-600"
               />
             </div>
 
             <div className="flex gap-2">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-3 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                className={`p-3 rounded-xl transition-all ${viewMode === 'grid' ? 'bg-red-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
               >
                 <Grid className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-3 rounded-xl transition-all ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                className={`p-3 rounded-xl transition-all ${viewMode === 'list' ? 'bg-red-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
               >
                 <List className="w-5 h-5" />
               </button>
@@ -183,14 +210,14 @@ const BuyCar = () => {
           </div>
 
           <div className="text-sm text-gray-600">
-            Showing {filteredCars.length} of {carsData.length} cars
+            Showing {filteredCars.length} of {allCars.length} cars
           </div>
         </div>
 
         {/* Cars Grid/List */}
         <div className={`${viewMode === 'grid' ? 'grid md:grid-cols-2 lg:grid-cols-3 gap-8' : 'space-y-6'}`}>
           {filteredCars.map(car => (
-            <div key={car.id} className={`group glass-effect rounded-3xl overflow-hidden shadow-lg car-card-hover ${viewMode === 'list' ? 'md:flex' : ''}`}>
+            <div key={car.id} className={`group bg-white/80 backdrop-blur-md border border-red-100 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 ${viewMode === 'list' ? 'md:flex' : ''}`}>
               {/* Car Image */}
               <div className={`relative overflow-hidden ${viewMode === 'list' ? 'md:w-1/3' : ''}`}>
                 <img
@@ -217,7 +244,7 @@ const BuyCar = () => {
                     <h3 className="text-2xl font-bold text-gray-800 mb-1">
                       {car.brand} {car.model}
                     </h3>
-                    <p className="text-3xl font-bold text-blue-600">
+                    <p className="text-3xl font-bold text-red-600">
                       Rs {car.price.toLocaleString()}
                     </p>
                     <div className="flex items-center text-gray-500 mt-1">
@@ -246,7 +273,7 @@ const BuyCar = () => {
                     <p className="text-sm text-gray-600 mb-2">Key Features:</p>
                     <div className="flex flex-wrap gap-2">
                       {car.features.map((feature, index) => (
-                        <span key={index} className="bg-blue-50 text-blue-600 px-2 py-1 rounded-lg text-xs">
+                        <span key={index} className="bg-red-50 text-red-600 px-2 py-1 rounded-lg text-xs">
                           {feature}
                         </span>
                       ))}
@@ -256,7 +283,7 @@ const BuyCar = () => {
 
                 {/* Contact Buttons */}
                 <div className="space-y-2">
-                  <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300">
+                  <button className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors">
                     View Details
                   </button>
                   <button className="w-full bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600 transition-colors">

@@ -15,7 +15,7 @@ const Hero = () => {
           {/* Left Content */}
           <div className="space-y-8">
             <div className="space-y-4">
-              <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
+              <h1 className="text-5xl lg:text-6xl font-bold leading-tight text-gray-900">
                 Find Your Perfect
                 <span className="block text-red-600">Car in Mauritius</span>
               </h1>
@@ -70,15 +70,15 @@ const Hero = () => {
               {/* Floating cards */}
               <div className="absolute -top-4 -left-4 bg-white/90 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-lg">
                 <div className="flex items-center space-x-2">
-                  <Star className="w-5 h-5 text-yellow-500 fill-current" />
-                  <span className="font-semibold">4.9 Rating</span>
+                  <Star className="w-5 h-5 text-red-500 fill-current" />
+                  <span className="font-semibold text-gray-900">4.9 Rating</span>
                 </div>
               </div>
               
               <div className="absolute -bottom-4 -right-4 bg-white/90 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-lg">
                 <div className="flex items-center space-x-2">
                   <Users className="w-5 h-5 text-red-500" />
-                  <span className="font-semibold">Trusted by 1000+</span>
+                  <span className="font-semibold text-gray-900">Trusted by 1000+</span>
                 </div>
               </div>
             </div>
