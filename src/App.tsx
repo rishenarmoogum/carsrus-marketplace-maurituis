@@ -1,14 +1,23 @@
-// src/App.tsx
+
 import React from 'react';
-import './index.css'; // assuming Tailwind is set up here
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Index from './pages/Index';
+import BuyCar from './pages/BuyCar';
+import SellCar from './pages/SellCar';
+import Contact from './pages/Contact';
+import LoginPage from './pages/LoginPage';
 
 function App() {
   return (
-    <div className="bg-dark min-h-screen text-accent flex flex-col items-center justify-center p-6">
-      <img src="/Logo Car.jpg" alt="CarsRus Logo" className="h-32 mb-4" />
-      <h1 className="text-4xl font-bold text-primary">CarsRus</h1>
-      <p className="mt-2 text-lg">Expert in Cars, Vans & Trucks</p>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/buy-car" element={<BuyCar />} />
+        <Route path="/sell-car" element={<SellCar />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/login" element={<LoginPage />} />
+      </Routes>
+    </Router>
   );
 }
 

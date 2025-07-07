@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Car, Menu, X } from 'lucide-react';
+import { Car, Menu, X, User } from 'lucide-react';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,15 +17,17 @@ const Header = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass-effect shadow-lg">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-red-100 shadow-lg">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
-            <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl group-hover:scale-110 transition-transform">
-              <Car className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold gradient-text">CarsRus</span>
+          <Link to="/" className="flex items-center space-x-3 group">
+            <img 
+              src="/lovable-uploads/f849771a-7d92-461d-a66f-fa74fe044c53.png" 
+              alt="CarsRus Logo" 
+              className="h-12 w-12 object-contain group-hover:scale-110 transition-transform"
+            />
+            <span className="text-2xl font-bold text-red-600">CarsRus</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -36,22 +38,31 @@ const Header = () => {
                 to={link.path}
                 className={`relative px-4 py-2 rounded-lg transition-all duration-300 font-medium ${
                   isActive(link.path)
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                    ? 'text-red-600 bg-red-50'
+                    : 'text-gray-700 hover:text-red-600 hover:bg-red-50'
                 }`}
               >
                 {link.label}
                 {isActive(link.path) && (
-                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full"></div>
+                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-red-600 rounded-full"></div>
                 )}
               </Link>
             ))}
+            
+            {/* Login Button */}
+            <Link
+              to="/login"
+              className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <User className="w-4 h-4" />
+              <span>Login</span>
+            </Link>
           </nav>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 text-gray-700 hover:text-blue-600 transition-colors"
+            className="md:hidden p-2 text-gray-700 hover:text-red-600 transition-colors"
           >
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -59,7 +70,7 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <nav className="md:hidden mt-4 pt-4 border-t border-gray-200">
+          <nav className="md:hidden mt-4 pt-4 border-t border-red-200">
             <div className="flex flex-col space-y-2">
               {navLinks.map((link) => (
                 <Link
@@ -68,13 +79,21 @@ const Header = () => {
                   onClick={() => setIsMenuOpen(false)}
                   className={`px-4 py-3 rounded-lg transition-all duration-300 font-medium ${
                     isActive(link.path)
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                      ? 'text-red-600 bg-red-50'
+                      : 'text-gray-700 hover:text-red-600 hover:bg-red-50'
                   }`}
                 >
                   {link.label}
                 </Link>
               ))}
+              <Link
+                to="/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center space-x-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <User className="w-4 h-4" />
+                <span>Login</span>
+              </Link>
             </div>
           </nav>
         )}
