@@ -97,7 +97,8 @@ const FeaturedCars = () => {
                   alt={`${car.brand} ${car.model}`}
                   className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
                   onError={(e) => {
-                    e.target.src = 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
                   }}
                 />
                 <div className="absolute top-4 left-4">
