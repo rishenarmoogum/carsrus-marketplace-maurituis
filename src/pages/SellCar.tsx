@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -26,6 +27,7 @@ const SellCar = () => {
     engine: '',
     transmission: '',
     seats: '',
+    telephone: '',
     description: ''
   });
 
@@ -60,13 +62,28 @@ const SellCar = () => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    // Special handling for telephone number
+    if (name === 'telephone') {
+      // Only allow numbers and limit to 8 digits
+      const numericValue = value.replace(/\D/g, '').slice(0, 8);
+      setForm({ ...form, [name]: numericValue });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (images.length === 0) {
       alert('Please upload at least one image');
+      return;
+    }
+    
+    // Validate telephone number
+    if (form.telephone && form.telephone.length !== 8) {
+      alert('Telephone number must be exactly 8 digits');
       return;
     }
     
@@ -85,6 +102,7 @@ const SellCar = () => {
         fuel: form.fuel,
         transmission: form.transmission,
         seats: parseInt(form.seats) || 5,
+        telephone: form.telephone,
         description: form.description,
         images: imageUrls,
         dateAdded: new Date().toISOString()
@@ -273,6 +291,20 @@ const SellCar = () => {
                   placeholder="e.g., 50000"
                   className="border-red-200 focus:border-red-500 focus:ring-red-500"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="telephone">Telephone Number</Label>
+                <Input
+                  name="telephone"
+                  type="tel"
+                  value={form.telephone}
+                  onChange={handleChange}
+                  placeholder="e.g., 12345678"
+                  maxLength={8}
+                  className="border-red-200 focus:border-red-500 focus:ring-red-500"
+                />
+                <p className="text-xs text-gray-500">Enter 8-digit phone number</p>
               </div>
 
               <div className="space-y-2">

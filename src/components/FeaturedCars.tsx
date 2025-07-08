@@ -51,8 +51,22 @@ const FeaturedCars = () => {
     const savedCars = localStorage.getItem('userCars');
     const userCars = savedCars ? JSON.parse(savedCars) : [];
     
+    // Transform user cars to match display format with proper image handling
+    const transformedUserCars = userCars.map(car => ({
+      id: car.id,
+      brand: car.make,
+      model: car.model,
+      price: parseInt(car.price),
+      image: car.images && car.images.length > 0 ? car.images[0] : 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      year: parseInt(car.year),
+      fuel: car.fuel || 'Petrol',
+      transmission: car.transmission || 'Automatic',
+      seats: car.seats || 5,
+      featured: true
+    }));
+    
     // Combine static cars with user-submitted cars
-    const combinedCars = [...staticFeaturedCars, ...userCars];
+    const combinedCars = [...staticFeaturedCars, ...transformedUserCars];
     setAllCars(combinedCars);
   }, []);
 
@@ -82,6 +96,9 @@ const FeaturedCars = () => {
                   src={car.image}
                   alt={`${car.brand} ${car.model}`}
                   className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    e.target.src = 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+                  }}
                 />
                 <div className="absolute top-4 left-4">
                   <span className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
@@ -109,15 +126,15 @@ const FeaturedCars = () => {
                 {/* Specifications */}
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div className="text-center">
-                    <Fuel className="w-5 h-5 text-gray-500 mx-auto mb-1" />
+                    <Fuel className="w-5 h-5 text-red-500 mx-auto mb-1" />
                     <span className="text-sm text-gray-600">{car.fuel}</span>
                   </div>
                   <div className="text-center">
-                    <Settings className="w-5 h-5 text-gray-500 mx-auto mb-1" />
+                    <Settings className="w-5 h-5 text-red-500 mx-auto mb-1" />
                     <span className="text-sm text-gray-600">{car.transmission}</span>
                   </div>
                   <div className="text-center">
-                    <Users className="w-5 h-5 text-gray-500 mx-auto mb-1" />
+                    <Users className="w-5 h-5 text-red-500 mx-auto mb-1" />
                     <span className="text-sm text-gray-600">{car.seats} Seats</span>
                   </div>
                 </div>

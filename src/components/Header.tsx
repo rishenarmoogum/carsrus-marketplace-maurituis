@@ -25,7 +25,7 @@ const Header = () => {
             <img 
               src="/lovable-uploads/f849771a-7d92-461d-a66f-fa74fe044c53.png" 
               alt="CarsRus Logo" 
-              className="h-12 w-12 object-contain group-hover:scale-110 transition-transform"
+              className="h-16 w-16 object-contain group-hover:scale-110 transition-transform"
             />
             <span className="text-2xl font-bold text-red-600">CarsRus</span>
           </Link>
