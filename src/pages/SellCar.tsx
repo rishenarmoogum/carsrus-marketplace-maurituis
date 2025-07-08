@@ -9,9 +9,11 @@ import ImageUpload from '../components/sell-car/ImageUpload';
 import CarDetailsForm from '../components/sell-car/CarDetailsForm';
 import LoginRequiredView from '../components/sell-car/LoginRequiredView';
 import SuccessView from '../components/sell-car/SuccessView';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../integrations/supabase/client';
 
 const SellCar = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, loading } = useAuth();
   const [images, setImages] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,11 +34,6 @@ const SellCar = () => {
     telephone: '',
     description: ''
   });
-
-  useEffect(() => {
-    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    setIsLoggedIn(loggedIn);
-  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -88,37 +85,46 @@ const SellCar = () => {
       alert('Telephone number must be exactly 8 digits');
       return;
     }
+
+    if (!user) {
+      alert('Please log in to sell your car');
+      return;
+    }
     
     setIsSubmitting(true);
     
     try {
-      // Create a new car object
-      const newCar = {
-        id: Date.now().toString(),
-        make: form.make,
-        model: form.model,
-        year: parseInt(form.year),
-        price: parseInt(form.price),
-        mileage: form.mileage,
-        color: form.color,
-        fuel: form.fuel,
-        transmission: form.transmission,
-        seats: parseInt(form.seats) || 5,
-        telephone: form.telephone,
-        description: form.description,
-        images: imageUrls,
-        dateAdded: new Date().toISOString()
-      };
+      // Convert image files to base64 or upload to storage
+      // For now, we'll store image URLs as strings in the database
+      const imageNames = images.map((file, index) => `car-${Date.now()}-${index}-${file.name}`);
       
-      // Get existing cars from localStorage
-      const existingCars = JSON.parse(localStorage.getItem('userCars') || '[]');
-      
-      // Add new car to the array
-      const updatedCars = [...existingCars, newCar];
-      
-      // Save back to localStorage
-      localStorage.setItem('userCars', JSON.stringify(updatedCars));
-      
+      // Insert car data into Supabase
+      const { data, error } = await supabase
+        .from('cars')
+        .insert([
+          {
+            user_id: user.id,
+            make: form.make,
+            model: form.model,
+            year: parseInt(form.year),
+            price: parseInt(form.price),
+            mileage: form.mileage,
+            color: form.color,
+            fuel: form.fuel,
+            transmission: form.transmission,
+            seats: parseInt(form.seats) || 5,
+            telephone: form.telephone,
+            description: form.description,
+            images: imageNames, // Store image file names for now
+          }
+        ])
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('Car listing created successfully:', data);
       setSubmitSuccess(true);
       
       // Redirect to home page after 2 seconds
@@ -134,7 +140,18 @@ const SellCar = () => {
     }
   };
 
-  if (!isLoggedIn) {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
     return <LoginRequiredView />;
   }
 

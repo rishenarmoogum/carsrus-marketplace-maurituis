@@ -1,14 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card } from './ui/card';
 import { Eye, EyeOff } from 'lucide-react';
+import { supabase } from '../integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -16,29 +21,69 @@ const Login = () => {
     name: ''
   });
 
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/');
+      }
+    };
+    checkUser();
+  }, [navigate]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+    setError('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate authentication
-    if (isSignUp) {
-      if (formData.password !== formData.confirmPassword) {
-        alert('Passwords do not match');
-        return;
+    setLoading(true);
+    setError('');
+
+    try {
+      if (isSignUp) {
+        if (formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: formData.name,
+            }
+          }
+        });
+
+        if (error) throw error;
+        
+        // For development, you might want to disable email confirmation
+        // Check your Supabase project settings under Authentication > Settings
+        alert('Please check your email for confirmation link');
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (error) throw error;
+        
+        navigate('/');
       }
-      alert('Account created successfully!');
-    } else {
-      alert('Login successful!');
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
-    // Here you would typically handle the authentication logic
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userEmail', formData.email);
-    window.location.href = '/';
   };
 
   return (
@@ -57,6 +102,12 @@ const Login = () => {
             {isSignUp ? 'Create your CarsRus account' : 'Welcome back to CarsRus'}
           </p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {isSignUp && (
@@ -126,9 +177,10 @@ const Login = () => {
 
           <Button
             type="submit"
+            disabled={loading}
             className="w-full bg-red-600 hover:bg-red-700 text-white"
           >
-            {isSignUp ? 'Create Account' : 'Sign In'}
+            {loading ? 'Loading...' : (isSignUp ? 'Create Account' : 'Sign In')}
           </Button>
         </form>
 
