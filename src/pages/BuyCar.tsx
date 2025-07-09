@@ -27,43 +27,48 @@ const BuyCar = () => {
   useEffect(() => {
     const loadCars = async () => {
       try {
-        const { data: cars, error } = await supabase
+        // First get cars
+        const { data: cars, error: carsError } = await supabase
           .from('cars')
-          .select(`
-            *,
-            profiles!cars_user_id_fkey (
-              full_name,
-              email
-            )
-          `);
+          .select('*');
 
-        if (error) {
-          console.error('Error fetching cars:', error);
+        if (carsError) {
+          console.error('Error fetching cars:', carsError);
           return;
         }
 
-        // Transform cars data for display
-        const transformedCars = cars.map(car => ({
-          id: car.id,
-          brand: car.make,
-          model: car.model,
-          price: car.price,
-          year: car.year,
-          transmission: car.transmission || 'Automatic',
-          fuel: car.fuel || 'Petrol',
-          mileage: car.mileage ? `${car.mileage} km` : 'N/A',
-          seats: car.seats || 5,
-          location: 'Mauritius',
-          images: car.images && car.images.length > 0 ? car.images : ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
-          features: ['Contact Seller'],
-          description: car.description || '',
-          color: car.color || '',
-          telephone: car.telephone || '',
-          seller_name: car.profiles?.full_name || 'Unknown Seller',
-          seller_email: car.profiles?.email || ''
-        }));
+        // Then get profiles for each car
+        const carsWithProfiles = await Promise.all(
+          cars.map(async (car) => {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('full_name, email')
+              .eq('id', car.user_id)
+              .single();
 
-        setAllCars(transformedCars);
+            return {
+              id: car.id,
+              brand: car.make,
+              model: car.model,
+              price: car.price,
+              year: car.year,
+              transmission: car.transmission || 'Automatic',
+              fuel: car.fuel || 'Petrol',
+              mileage: car.mileage ? `${car.mileage} km` : 'N/A',
+              seats: car.seats || 5,
+              location: 'Mauritius',
+              images: car.images && car.images.length > 0 ? car.images : ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
+              features: ['Contact Seller'],
+              description: car.description || '',
+              color: car.color || '',
+              telephone: car.telephone || '',
+              seller_name: profile?.full_name || 'Unknown Seller',
+              seller_email: profile?.email || ''
+            };
+          })
+        );
+
+        setAllCars(carsWithProfiles);
       } catch (error) {
         console.error('Error loading cars:', error);
       }
