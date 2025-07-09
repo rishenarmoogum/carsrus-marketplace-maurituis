@@ -3,10 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Grid, List, Fuel, Settings, Users, MapPin } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import CarDetailsModal from '../components/CarDetailsModal';
+import ContactModal from '../components/ContactModal';
+import { supabase } from '../integrations/supabase/client';
 
 const BuyCar = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [allCars, setAllCars] = useState([]);
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     make: '',
     model: '',
@@ -17,90 +23,53 @@ const BuyCar = () => {
     year: ''
   });
 
-  // Static car data
-  const staticCarsData = [
-    {
-      id: '1',
-      brand: 'Toyota',
-      model: 'Corolla',
-      price: 750000,
-      year: 2020,
-      transmission: 'Automatic',
-      fuel: 'Petrol',
-      mileage: '45,000 km',
-      seats: 5,
-      location: 'Port Louis',
-      images: ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
-      features: ['Air Conditioning', 'Bluetooth', 'Reverse Camera']
-    },
-    {
-      id: '2',
-      brand: 'Honda',
-      model: 'Civic',
-      price: 850000,
-      year: 2019,
-      transmission: 'Manual',
-      fuel: 'Petrol',
-      mileage: '52,000 km',
-      seats: 5,
-      location: 'Quatre Bornes',
-      images: ['https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
-      features: ['Sunroof', 'Leather Seats', 'Navigation']
-    },
-    {
-      id: '3',
-      brand: 'Mercedes-Benz',
-      model: 'C-Class',
-      price: 2850000,
-      year: 2022,
-      transmission: 'Automatic',
-      fuel: 'Petrol',
-      mileage: '15,000 km',
-      seats: 5,
-      location: 'Grand Baie',
-      images: ['https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
-      features: ['Premium Sound', 'Heated Seats', 'Panoramic Roof']
-    },
-    {
-      id: '4',
-      brand: 'BMW',
-      model: 'X3',
-      price: 3200000,
-      year: 2023,
-      transmission: 'Automatic',
-      fuel: 'Petrol',
-      mileage: '8,000 km',
-      seats: 7,
-      location: 'Curepipe',
-      images: ['https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
-      features: ['All-Wheel Drive', 'Third Row Seating', 'Digital Dashboard']
-    }
-  ];
-
+  // Load cars from Supabase
   useEffect(() => {
-    // Load user-submitted cars from localStorage
-    const savedCars = localStorage.getItem('userCars');
-    const userCars = savedCars ? JSON.parse(savedCars) : [];
-    
-    // Transform user cars to match the expected format
-    const transformedUserCars = userCars.map(car => ({
-      id: car.id,
-      brand: car.make,
-      model: car.model,
-      price: parseInt(car.price),
-      year: parseInt(car.year),
-      transmission: car.transmission || 'Automatic',
-      fuel: car.fuel || 'Petrol',
-      mileage: car.mileage ? `${car.mileage} km` : 'N/A',
-      seats: car.seats || 5,
-      location: 'Mauritius',
-      images: car.images || ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
-      features: ['User Listed', 'Contact Seller']
-    }));
-    
-    // Combine static cars with user-submitted cars
-    const combinedCars = [...staticCarsData, ...transformedUserCars];
-    setAllCars(combinedCars);
+    const loadCars = async () => {
+      try {
+        const { data: cars, error } = await supabase
+          .from('cars')
+          .select(`
+            *,
+            profiles!cars_user_id_fkey (
+              full_name,
+              email
+            )
+          `);
+
+        if (error) {
+          console.error('Error fetching cars:', error);
+          return;
+        }
+
+        // Transform cars data for display
+        const transformedCars = cars.map(car => ({
+          id: car.id,
+          brand: car.make,
+          model: car.model,
+          price: car.price,
+          year: car.year,
+          transmission: car.transmission || 'Automatic',
+          fuel: car.fuel || 'Petrol',
+          mileage: car.mileage ? `${car.mileage} km` : 'N/A',
+          seats: car.seats || 5,
+          location: 'Mauritius',
+          images: car.images && car.images.length > 0 ? car.images : ['https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'],
+          features: ['Contact Seller'],
+          description: car.description || '',
+          color: car.color || '',
+          telephone: car.telephone || '',
+          seller_name: car.profiles?.full_name || 'Unknown Seller',
+          seller_email: car.profiles?.email || ''
+        }));
+
+        setAllCars(transformedCars);
+      } catch (error) {
+        console.error('Error loading cars:', error);
+      }
+    };
+
+    loadCars();
   }, []);
 
   const filteredCars = allCars.filter(car => {
@@ -117,6 +86,16 @@ const BuyCar = () => {
 
   const brands = [...new Set(allCars.map(car => car.brand))];
   const models = [...new Set(allCars.map(car => car.model))];
+
+  const handleViewDetails = (car) => {
+    setSelectedCar(car);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleContactSeller = (car) => {
+    setSelectedCar(car);
+    setIsContactModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-white">
@@ -283,10 +262,16 @@ const BuyCar = () => {
 
                 {/* Contact Buttons */}
                 <div className="space-y-2">
-                  <button className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors">
+                  <button 
+                    onClick={() => handleViewDetails(car)}
+                    className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors"
+                  >
                     View Details
                   </button>
-                  <button className="w-full bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600 transition-colors">
+                  <button 
+                    onClick={() => handleContactSeller(car)}
+                    className="w-full bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600 transition-colors"
+                  >
                     Contact Seller
                   </button>
                 </div>
@@ -305,6 +290,19 @@ const BuyCar = () => {
       </div>
 
       <Footer />
+
+      {/* Modals */}
+      <CarDetailsModal 
+        car={selectedCar}
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+      />
+      
+      <ContactModal 
+        car={selectedCar}
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+      />
     </div>
   );
 };

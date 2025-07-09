@@ -2,72 +2,103 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Fuel, Settings, Users } from 'lucide-react';
+import { supabase } from '../integrations/supabase/client';
 
 const FeaturedCars = () => {
   const [allCars, setAllCars] = useState([]);
 
-  // Static featured cars
-  const staticFeaturedCars = [
-    {
-      id: 1,
-      brand: 'Toyota',
-      model: 'Camry Hybrid',
-      price: 1250000,
-      image: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      year: 2023,
-      fuel: 'Hybrid',
-      transmission: 'Automatic',
-      seats: 5,
-      featured: true
-    },
-    {
-      id: 2,
-      brand: 'Mercedes-Benz',
-      model: 'C-Class',
-      price: 2850000,
-      image: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      year: 2022,
-      fuel: 'Petrol',
-      transmission: 'Automatic',
-      seats: 5,
-      featured: true
-    },
-    {
-      id: 3,
-      brand: 'BMW',
-      model: 'X3',
-      price: 3200000,
-      image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      year: 2023,
-      fuel: 'Petrol',
-      transmission: 'Automatic',
-      seats: 7,
-      featured: true
-    }
-  ];
-
   useEffect(() => {
-    // Load user-submitted cars from localStorage
-    const savedCars = localStorage.getItem('userCars');
-    const userCars = savedCars ? JSON.parse(savedCars) : [];
-    
-    // Transform user cars to match display format with proper image handling
-    const transformedUserCars = userCars.map(car => ({
-      id: car.id,
-      brand: car.make,
-      model: car.model,
-      price: parseInt(car.price),
-      image: car.images && car.images.length > 0 ? car.images[0] : 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      year: parseInt(car.year),
-      fuel: car.fuel || 'Petrol',
-      transmission: car.transmission || 'Automatic',
-      seats: car.seats || 5,
-      featured: true
-    }));
-    
-    // Combine static cars with user-submitted cars
-    const combinedCars = [...staticFeaturedCars, ...transformedUserCars];
-    setAllCars(combinedCars);
+    const loadCars = async () => {
+      try {
+        // Load cars from Supabase
+        const { data: supabaseCars, error } = await supabase
+          .from('cars')
+          .select('*')
+          .limit(6);
+
+        if (error) {
+          console.error('Error fetching cars from Supabase:', error);
+        }
+
+        // Transform Supabase cars to display format
+        const transformedSupabaseCars = (supabaseCars || []).map(car => ({
+          id: car.id,
+          brand: car.make,
+          model: car.model,
+          price: car.price,
+          image: car.images && car.images.length > 0 ? car.images[0] : 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+          year: car.year,
+          fuel: car.fuel || 'Petrol',
+          transmission: car.transmission || 'Automatic',
+          seats: car.seats || 5,
+          featured: true
+        }));
+
+        // Static featured cars
+        const staticFeaturedCars = [
+          {
+            id: 'static-1',
+            brand: 'Toyota',
+            model: 'Camry Hybrid',
+            price: 1250000,
+            image: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            year: 2023,
+            fuel: 'Hybrid',
+            transmission: 'Automatic',
+            seats: 5,
+            featured: true
+          },
+          {
+            id: 'static-2',
+            brand: 'Mercedes-Benz',
+            model: 'C-Class',
+            price: 2850000,
+            image: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            year: 2022,
+            fuel: 'Petrol',
+            transmission: 'Automatic',
+            seats: 5,
+            featured: true
+          },
+          {
+            id: 'static-3',
+            brand: 'BMW',
+            model: 'X3',
+            price: 3200000,
+            image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            year: 2023,
+            fuel: 'Petrol',
+            transmission: 'Automatic',
+            seats: 7,
+            featured: true
+          }
+        ];
+
+        // Combine static cars with user-submitted cars (prioritize user cars)
+        const combinedCars = [...transformedSupabaseCars, ...staticFeaturedCars];
+        setAllCars(combinedCars);
+      } catch (error) {
+        console.error('Error loading cars:', error);
+        // Fallback to static cars if there's an error
+        const staticFeaturedCars = [
+          {
+            id: 'static-1',
+            brand: 'Toyota',
+            model: 'Camry Hybrid',
+            price: 1250000,
+            image: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+            year: 2023,
+            fuel: 'Hybrid',
+            transmission: 'Automatic',
+            seats: 5,
+            featured: true
+          }
+        ];
+        setAllCars(staticFeaturedCars);
+      }
+    };
+
+    loadCars();
   }, []);
 
   return (

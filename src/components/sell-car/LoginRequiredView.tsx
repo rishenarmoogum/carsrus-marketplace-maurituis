@@ -3,6 +3,7 @@ import React from 'react';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { AlertCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const LoginRequiredView = () => {
   return (
@@ -13,12 +14,11 @@ const LoginRequiredView = () => {
         <p className="text-gray-600 mb-6">
           You need to be logged in to sell your car. Please sign in or create an account to continue.
         </p>
-        <Button 
-          onClick={() => window.location.href = '/login'}
-          className="bg-red-600 hover:bg-red-700 text-white"
-        >
-          Go to Login
-        </Button>
+        <Link to="/login">
+          <Button className="bg-red-600 hover:bg-red-700 text-white">
+            Go to Login
+          </Button>
+        </Link>
       </Card>
     </div>
   );

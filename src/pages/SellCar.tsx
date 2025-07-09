@@ -5,6 +5,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Card } from '../components/ui/card';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 import ImageUpload from '../components/sell-car/ImageUpload';
 import CarDetailsForm from '../components/sell-car/CarDetailsForm';
 import LoginRequiredView from '../components/sell-car/LoginRequiredView';
@@ -34,6 +35,26 @@ const SellCar = () => {
     telephone: '',
     description: ''
   });
+
+  const uploadImageToSupabase = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `car-images/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('car-images')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('car-images')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -94,9 +115,10 @@ const SellCar = () => {
     setIsSubmitting(true);
     
     try {
-      // Convert image files to base64 or upload to storage
-      // For now, we'll store image URLs as strings in the database
-      const imageNames = images.map((file, index) => `car-${Date.now()}-${index}-${file.name}`);
+      // Upload images to Supabase Storage
+      const uploadedImageUrls = await Promise.all(
+        images.map(file => uploadImageToSupabase(file))
+      );
       
       // Insert car data into Supabase
       const { data, error } = await supabase
@@ -115,7 +137,7 @@ const SellCar = () => {
             seats: parseInt(form.seats) || 5,
             telephone: form.telephone,
             description: form.description,
-            images: imageNames, // Store image file names for now
+            images: uploadedImageUrls,
           }
         ])
         .select();
@@ -142,66 +164,86 @@ const SellCar = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-white">
+        <Header />
+        <div className="flex items-center justify-center pt-24">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   if (!user) {
-    return <LoginRequiredView />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-white">
+        <Header />
+        <div className="pt-24">
+          <LoginRequiredView />
+        </div>
+      </div>
+    );
   }
 
   if (submitSuccess) {
-    return <SuccessView />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-white">
+        <Header />
+        <div className="pt-24">
+          <SuccessView />
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white pt-24 pb-12">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <Card className="p-8 shadow-2xl border-red-200 bg-white/90 backdrop-blur-sm">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-red-600 mb-2">Sell Your Car</h1>
-            <p className="text-gray-600">List your vehicle on Mauritius' most trusted marketplace</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <ImageUpload
-              images={images}
-              imageUrls={imageUrls}
-              onImageUpload={handleImageUpload}
-              onRemoveImage={removeImage}
-            />
-
-            <CarDetailsForm
-              form={form}
-              handleChange={handleChange}
-            />
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                placeholder="Describe your car's condition, features, and any additional information..."
-                rows={4}
-                className="border-red-200 focus:border-red-500 focus:ring-red-500"
-              />
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white">
+      <Header />
+      <div className="pt-24 pb-12">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <Card className="p-8 shadow-2xl border-red-200 bg-white/90 backdrop-blur-sm">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-red-600 mb-2">Sell Your Car</h1>
+              <p className="text-gray-600">List your vehicle on Mauritius' most trusted marketplace</p>
             </div>
 
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-red-600 hover:bg-red-700 text-white py-3 text-lg font-semibold"
-            >
-              {isSubmitting ? 'Listing Your Car...' : 'List My Car'}
-            </Button>
-          </form>
-        </Card>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <ImageUpload
+                images={images}
+                imageUrls={imageUrls}
+                onImageUpload={handleImageUpload}
+                onRemoveImage={removeImage}
+              />
+
+              <CarDetailsForm
+                form={form}
+                handleChange={handleChange}
+              />
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  placeholder="Describe your car's condition, features, and any additional information..."
+                  rows={4}
+                  className="border-red-200 focus:border-red-500 focus:ring-red-500"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-3 text-lg font-semibold"
+              >
+                {isSubmitting ? 'Listing Your Car...' : 'List My Car'}
+              </Button>
+            </form>
+          </Card>
+        </div>
       </div>
     </div>
   );
