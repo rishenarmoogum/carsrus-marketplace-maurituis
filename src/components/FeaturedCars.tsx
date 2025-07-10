@@ -40,7 +40,6 @@ const FeaturedCars = () => {
               brand: car.make,
               model: car.model,
               price: car.price,
-              image: car.images && car.images.length > 0 ? car.images[0] : 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
               year: car.year,
               fuel: car.fuel || 'Petrol',
               transmission: car.transmission || 'Automatic',
@@ -67,7 +66,6 @@ const FeaturedCars = () => {
               brand: 'Toyota',
               model: 'Camry Hybrid',
               price: 1250000,
-              image: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
               year: 2023,
               fuel: 'Hybrid',
               transmission: 'Automatic',
@@ -88,7 +86,6 @@ const FeaturedCars = () => {
               brand: 'Mercedes-Benz',
               model: 'C-Class',
               price: 2850000,
-              image: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
               year: 2022,
               fuel: 'Petrol',
               transmission: 'Automatic',
@@ -109,7 +106,6 @@ const FeaturedCars = () => {
               brand: 'BMW',
               model: 'X3',
               price: 3200000,
-              image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
               year: 2023,
               fuel: 'Petrol',
               transmission: 'Automatic',
@@ -142,7 +138,6 @@ const FeaturedCars = () => {
             brand: 'Toyota',
             model: 'Camry Hybrid',
             price: 1250000,
-            image: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
             year: 2023,
             fuel: 'Hybrid',
             transmission: 'Automatic',
@@ -195,7 +190,7 @@ const FeaturedCars = () => {
                 {/* Car Image */}
                 <div className="relative overflow-hidden">
                   <img
-                    src={car.image}
+                    src={car.images[0]}
                     alt={`${car.brand} ${car.model}`}
                     className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
                     onError={(e) => {
