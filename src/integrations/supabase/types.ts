@@ -19,6 +19,7 @@ export type Database = {
           color: string | null
           created_at: string | null
           description: string | null
+          featured: boolean
           fuel: string | null
           id: string
           images: string[] | null
@@ -37,6 +38,7 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           description?: string | null
+          featured?: boolean
           fuel?: string | null
           id?: string
           images?: string[] | null
@@ -55,6 +57,7 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           description?: string | null
+          featured?: boolean
           fuel?: string | null
           id?: string
           images?: string[] | null

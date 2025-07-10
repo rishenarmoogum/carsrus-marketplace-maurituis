@@ -20,6 +20,7 @@ export interface Car {
   telephone: string;
   seller_name: string;
   seller_email: string;
+  featured?: boolean;
 }
 
 export interface CarFilters {
@@ -40,10 +41,12 @@ export const useCars = () => {
     const loadCars = async () => {
       try {
         setLoading(true);
-        // First get cars
+        // Get cars ordered by featured first, then by creation date (newest first)
         const { data: cars, error: carsError } = await supabase
           .from('cars')
-          .select('*');
+          .select('*')
+          .order('featured', { ascending: false })
+          .order('created_at', { ascending: false });
 
         if (carsError) {
           console.error('Error fetching cars:', carsError);
@@ -76,7 +79,8 @@ export const useCars = () => {
               color: car.color || '',
               telephone: car.telephone || '',
               seller_name: profile?.full_name || 'Unknown Seller',
-              seller_email: profile?.email || ''
+              seller_email: profile?.email || '',
+              featured: car.featured || false
             };
           })
         );
